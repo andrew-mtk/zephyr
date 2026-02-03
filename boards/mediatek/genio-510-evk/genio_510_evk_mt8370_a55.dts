@@ -70,7 +70,6 @@
 	pinctrl-0 = <&uart1_default>;
 	pinctrl-names = "default";
 	current-speed = <115200>;
-    clock-frequency = <27>;
 	status = "okay";
 };
 

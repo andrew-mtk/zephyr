@@ -17,8 +17,7 @@
 typedef struct {
 	DEVICE_MMIO_ROM; /* Must be first */
 
-	uint32_t baud_rate;
-	uint32_t clocks;
+	uint32_t clock_freq;
 
 #ifdef CONFIG_PINCTRL
 	const struct pinctrl_dev_config *pinctrl_config;
@@ -32,6 +31,8 @@ typedef struct {
 typedef struct {
 	DEVICE_MMIO_RAM; /* Must be first */
 
+    struct uart_config uart_cfg;
+
 	struct k_spinlock lock;
 
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
@@ -44,6 +45,12 @@ typedef struct {
 
 extern void uart_mtk_poll_out(const struct device *dev, unsigned char c);
 extern int uart_mtk_poll_in(const struct device *dev, unsigned char *c);
+extern int uart_mtk_err_check(const struct device *dev);
+
+#ifdef CONFIG_UART_USE_RUNTIME_CONFIGURE
+extern int uart_mtk_configure(const struct device *dev, const struct uart_config *cfg);
+extern int uart_mtk_config_get(const struct device *dev, struct uart_config *cfg);
+#endif
 
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 extern int uart_mtk_fifo_fill(const struct device *dev, const uint8_t *tx_data, int size);

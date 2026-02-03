@@ -14,6 +14,29 @@ properties:
   interrupts:
     required: false
 
+  clock-frequency:
+    required: true
+
+  current-speed:
+    description: |
+      Initial baud rate setting for UART. Defaults to baudrate of 38400 if not specified.
+    default: 57600
+
+  stop-bits:
+    description: |
+      Sets the number of stop bits. Defaults to 1 if not specified.
+    default: "1"
+
+  data-bits:
+    description: |
+      Sets the number of data bits. Defaults to 8 if not specified.
+    default: 8
+
+  parity:
+    description: |
+      Sets the data parity. Defaults to none if not specified.
+    default: "none"
+
   pinctrl-0:
     required: true
 

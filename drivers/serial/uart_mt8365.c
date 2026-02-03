@@ -17,6 +17,12 @@
 static DEVICE_API(uart, uart_mtk_driver_api) = {
 	.poll_in = uart_mtk_poll_in,
 	.poll_out = uart_mtk_poll_out,
+	.err_check = uart_mtk_err_check,
+
+#ifdef CONFIG_UART_USE_RUNTIME_CONFIGURE
+	.configure = uart_mtk_configure,
+	.config_get = uart_mtk_config_get,
+#endif
 
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 	.fifo_fill = uart_mtk_fifo_fill,
@@ -34,13 +40,22 @@ static DEVICE_API(uart, uart_mtk_driver_api) = {
 };
 
 #define UART_DECLARE_CFG(n, IRQ_FUNC_INIT)                                                   \
+    static uart_mtk_data_t uart_mtk_##n##_data = {                                           \
+		.uart_cfg = {                                                                        \
+			.baudrate = DT_INST_PROP(n, current_speed),                                      \
+			.parity = DT_INST_ENUM_IDX(n, parity),                                           \
+			.stop_bits = DT_INST_ENUM_IDX(n, stop_bits),                                     \
+			.data_bits = DT_INST_ENUM_IDX(n, data_bits),                                     \
+            .flow_ctrl = UART_CFG_FLOW_CTRL_NONE,                                            \
+		}                                                                                    \
+    };                                                                                       \
+                                                                                             \
 	static const uart_mtk_config_t uart_mtk_##n##_config = {                                 \
 		DEVICE_MMIO_ROM_INIT(DT_DRV_INST(n)),                                                \
-		.baud_rate = DT_INST_PROP(n, current_speed),                                         \
-		.clocks = DT_INST_PROP(n, clock_frequency),                                          \
+		.clock_freq = DT_INST_PROP(n, clock_frequency),                                      \
 		IF_ENABLED (CONFIG_PINCTRL, (.pinctrl_config = PINCTRL_DT_INST_DEV_CONFIG_GET (n),)) \
 		IRQ_FUNC_INIT                                                                        \
-	}
+	};
 
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
 #define UART_IRQ_CONFIG_FUNC(n)                                                         \
@@ -61,12 +76,10 @@ static DEVICE_API(uart, uart_mtk_driver_api) = {
 
 #define UART_INIT(n)                                                                   \
 	IF_ENABLED (CONFIG_PINCTRL, (PINCTRL_DT_INST_DEFINE (n);))                         \
-	static uart_mtk_data_t uart_mtk_##n##_data;                                        \
-	static const uart_mtk_config_t uart_mtk_##n##_config;                              \
 	UART_IRQ_CONFIG_FUNC(n)                                                            \
+	UART_INIT_CFG(n)                                                                   \
 	DEVICE_DT_INST_DEFINE(n, &uart_mtk_init, NULL, &uart_mtk_##n##_data,               \
 			      &uart_mtk_##n##_config, PRE_KERNEL_1, CONFIG_SERIAL_INIT_PRIORITY,   \
-			      &uart_mtk_driver_api);                                               \
-	UART_INIT_CFG(n);
+			      &uart_mtk_driver_api);
 
 DT_INST_FOREACH_STATUS_OKAY(UART_INIT)
