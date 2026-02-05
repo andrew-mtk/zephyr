@@ -82,7 +82,7 @@
 #define UART_LSR_RX_FRAME       (0x08)         /* LSR [3:3] */
 #define UART_LSR_RX_PARITY      (0x04)         /* LSR [2:2] */
 #define UART_LSR_RX_OVERRUN     (0x02)         /* LSR [1:1] */
-#define UART_LSR_RX_READY       (0x00)         /* LSR [0:0] */
+#define UART_LSR_RX_READY       (0x01)         /* LSR [0:0] */
 
 
 static const uint32_t valid_baudrates [] = {
