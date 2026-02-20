@@ -1,0 +1,10 @@
+# Copyright 2025 MediaTek
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_FAMILY_MTK_GENIO
+
+# Source series Kconfig files first, so SOCs
+# can override the defaults given here
+rsource "*/Kconfig"
+
+endif # SOC_FAMILY_MTK_GENIO

@@ -1,0 +1,7 @@
+board:
+  name: genio_700_evk
+  full_name: GENION 700 EVK (4*Cortex-A55 and 4*Cortex-A78)
+  vendor: mediatek
+  socs:
+  - name: mt8390
+

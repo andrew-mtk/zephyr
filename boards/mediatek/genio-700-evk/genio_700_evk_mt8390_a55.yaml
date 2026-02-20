@@ -1,0 +1,22 @@
+#
+# Copyright 2025 MediaTek
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+identifier: genio_700_evk/mt8390/a55
+name: MediaTek GENION 700 EVK (4*Cortex-A55 and 4*Cortex-A78)
+type: mcu
+arch: arm64
+toolchain:
+  - zephyr
+  - cross-compile
+ram: 1024
+supported:
+  - pinctrl
+  - uart
+  - i2s
+testing:
+  ignore_tags:
+    - bluetooth
+vendor: mediatek
