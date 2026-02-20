@@ -1,0 +1,8 @@
+family:
+- name: mtk-genio
+  series:
+  - name: mt8390
+    socs:
+    - name: mt8390
+      cpuclusters:
+      - name: a55

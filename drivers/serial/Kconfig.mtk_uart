@@ -21,3 +21,13 @@ config UART_MT8370
 	select SERIAL_SUPPORT_INTERRUPT
 	help
 	  Enable the MediaTek MT8370 UART driver.
+
+config UART_MT8390
+	bool "MediaTek MT8390 UART driver"
+	default y
+	depends on DT_HAS_MEDIATEK_MT8390_UART_ENABLED
+	select PINCTRL
+	select SERIAL_HAS_DRIVER
+	select SERIAL_SUPPORT_INTERRUPT
+	help
+	  Enable the MediaTek MT8390 UART driver.

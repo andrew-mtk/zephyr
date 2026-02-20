@@ -1,0 +1,87 @@
+/*
+ * Copyright 2025 MediaTek
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <mem.h>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <mediatek/mt8390.dtsi>
+#include "genio_700_evk-pinctrl.dtsi"
+
+/ {
+	model = "MediaTek GENION 700 EVK (4*Cortex-A55 and 4*Cortex-A78)";
+	compatible = "mediatek,mt8390-evk";
+
+	aliases {
+		trigger = &trigger_gpio;
+		response = &response_gpio;
+	};
+
+	chosen {
+		zephyr,console = &uart1;
+		zephyr,sram = &dram;
+	};
+
+	trigger {
+		compatible = "gpio-keys";
+
+		trigger_gpio: trigger-gpio {
+			gpios = <&gpio32_63 6 GPIO_ACTIVE_LOW>;  /* GPIO 38 */
+			label = "Event Trigger";
+		};
+    };
+
+	response {
+		compatible = "gpio-leds";
+
+		response_gpio: response-pgio {
+			gpios = <&gpio32_63 8 GPIO_ACTIVE_LOW>;  /* GPIO 40 */
+			label = "Event Response";
+		};
+	};
+
+	cpus {
+		cpu@0 {
+			status = "disabled";
+		};
+		cpu@100 {
+			status = "disabled";
+		};
+		cpu@200 {
+			status = "disabled";
+		};
+		cpu@600 {
+			status = "disabled";
+		};
+		cpu@700 {
+			status = "disabled";
+		};
+	};
+
+	dram: memory@8000 {
+		reg = <0x00008000 DT_SIZE_M(2)>;
+	};
+};
+
+&uart1 {
+	pinctrl-0 = <&uart1_default>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+
+&gpio32_63 {
+	status = "okay";
+};
+
+/*
+&i2s {
+	pinctrl-0 = <&i2s_default>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+*/

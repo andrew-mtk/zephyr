@@ -1,0 +1,10 @@
+# Copyright 2025 MediaTek
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_FAMILY_MTK_GENIO
+	bool
+
+config SOC_FAMILY
+	default "mtk-genio" if SOC_FAMILY_MTK_GENIO
+
+rsource "*/Kconfig.soc"
