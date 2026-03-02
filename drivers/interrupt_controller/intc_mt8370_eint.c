@@ -8,9 +8,9 @@
 
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
-#include <zephyr/drivers/gpio.h>
-#include <zephyr/drivers/interrupt_controller/intc_mt8370_eint.h>
 #include <zephyr/irq.h>
+
+#include "intc_mtk_eint_common.h"
 
 #define EINT_OFFSET_STA_0          0x0000
 #define EINT_OFFSET_STA_1          0x0004
@@ -156,244 +156,76 @@
 #define EINT_OFFSET_DBNC_CLR_1_B_8 0x0718
 #define EINT_OFFSET_DBNC_CLR_1_F_C 0x071c
 
-typedef struct {
-	eint_mtk_callback_t callback;
-	void *arg;
-	uint8_t line;
-} eint_callback_t;
-
-typedef struct {
-	DEVICE_MMIO_ROM; /* Must be first */
-	uint16_t num_lines;
-	void (*irq_config_func)(const struct device *dev);
-} eint_mtk_config_t;
-
-typedef struct {
-	DEVICE_MMIO_RAM; /* Must be first */
-	struct k_spinlock lock;
-	sys_slist_t eint_callbacks;
-} eint_mtk_data_t;
-
-static inline uint32_t line_to_bit_mask(uint8_t line);
 static inline uint32_t line_to_offset(uint8_t line);
-static inline uint32_t offset_sta(uint8_t line);
-static inline uint32_t offset_ack(uint8_t line);
-static inline uint32_t offset_mask(uint8_t line);
-static inline uint32_t offset_mask_set(uint8_t line);
-static inline uint32_t offset_mask_clr(uint8_t line);
 
-static void handle_line_isr(const struct device *dev, uint8_t line, uint32_t bit_mask);
-static void eint_mtk_isr(const struct device *dev);
-static int eint_mtk_init(const struct device *dev);
-
-static inline uint32_t line_to_bit_mask(uint8_t line)
-{
-	return (1 << (((uint32_t)line) % 32));
-}
+static uint32_t line_to_bit_mask(uint8_t line);
+static uint32_t offset_sta(uint8_t line);
+static uint32_t offset_ack(uint8_t line);
+static uint32_t offset_mask(uint8_t line);
+static uint32_t offset_mask_set(uint8_t line);
+static uint32_t offset_mask_clr(uint8_t line);
 
 static inline uint32_t line_to_offset(uint8_t line)
 {
 	return ((((uint32_t)line) / 32) * 4);
 }
 
-static inline uint32_t offset_sta(uint8_t line)
+static uint32_t line_to_bit_mask(uint8_t line)
+{
+	return (1 << (((uint32_t)line) % 32));
+}
+
+static uint32_t offset_sta(uint8_t line)
 {
 	return (EINT_OFFSET_STA_0 + (line_to_offset(line)));
 }
 
-static inline uint32_t offset_ack(uint8_t line)
+static uint32_t offset_ack(uint8_t line)
 {
 	return (EINT_OFFSET_ACK_0 + (line_to_offset(line)));
 }
 
-static inline uint32_t offset_mask(uint8_t line)
+static uint32_t offset_mask(uint8_t line)
 {
 	return (EINT_OFFSET_MASK_0 + (line_to_offset(line)));
 }
 
-static inline uint32_t offset_mask_set(uint8_t line)
+static uint32_t offset_mask_set(uint8_t line)
 {
 	return (EINT_OFFSET_MASK_SET_0 + (line_to_offset(line)));
 }
 
-static inline uint32_t offset_mask_clr(uint8_t line)
+static uint32_t offset_mask_clr(uint8_t line)
 {
 	return (EINT_OFFSET_MASK_CLR_0 + (line_to_offset(line)));
 }
 
-static void handle_line_isr(const struct device *dev, uint8_t line, uint32_t bit_mask)
-{
-	eint_mtk_data_t *eint_data = dev->data;
-	eint_mtk_callback_t *eint_callback;
-	eint_mtk_callback_t *tmp;
+#define EINT_DECLARE_CFG(n)                                                                        \
+	static void irq_config_func_##n(const struct device *dev)                                  \
+	{                                                                                          \
+		IRQ_CONNECT(DT_INST_IRQN(n), DT_INST_IRQ(n, priority), eint_mtk_isr,               \
+			    DEVICE_DT_INST_GET(n), 0);                                             \
+		irq_enable(DT_INST_IRQN(n));                                                       \
+	}                                                                                          \
+                                                                                                   \
+	static eint_mtk_data_t eint_mtk_##n##_data;                                                \
+                                                                                                   \
+	static const eint_mtk_config_t eint_mtk_##n##_config = {                                   \
+		DEVICE_MMIO_ROM_INIT(DT_DRV_INST(n)),                                              \
+		.num_lines = DT_INST_PROP(n, num_lines),                                           \
+		.irq_config = irq_config_func_##n,                                                 \
+		.line_to_bit_mask = line_to_bit_mask,                                              \
+		.offset_sta = offset_sta,                                                          \
+		.offset_ack = offset_ack,                                                          \
+		.offset_mask = offset_mask,                                                        \
+		.offset_mask_set = offset_mask_set,                                                \
+		.offset_mask_clr = offset_mask_clr,                                                \
+	};
 
-	while (bit_mask != 0) {
-		if ((bit_mask & 0x00000001) != 0) {
-			SYS_SLIST_FOR_EACH_CONTAINER_SAFE(&(eint_data->eint_callbacks),
-							eint_callback, tmp, node) {
-				if ((line >= eint_callback->first_line) &&
-					(line <	 (eint_callback->first_line + eint_callback->num_lines))) {
-					eint_callback->cb_handler(eint_callback->cb_dev, line,
-								  eint_callback->cb_arg);
-				}
-			}
-
-			sys_write32(line_to_bit_mask(line), (DEVICE_MMIO_GET(dev) + offset_ack(line)));
-		}
-
-		line++;
-		bit_mask >>= 1;
-	}
-}
-
-static void eint_mtk_isr(const struct device *dev)
-{
-	uint8_t line = 0;
-	uint32_t status;
-	const eint_mtk_config_t *eint_config = dev->config;
-
-	while (line < eint_config->num_lines) {
-		status = sys_read32(DEVICE_MMIO_GET(dev) + offset_sta(line));
-
-		if (status != 0) {
-			handle_line_isr(dev, line, status);
-		}
-
-		line += 32;
-	}
-}
-
-static int eint_mtk_init(const struct device *dev)
-{
-	eint_mtk_data_t *eint_data = dev->data;
-	const eint_mtk_config_t *eint_config = dev->config;
-
-	DEVICE_MMIO_MAP(dev, K_MEM_CACHE_NONE);
-
-	sys_slist_init(&(eint_data->eint_callbacks));
-
-	eint_config->irq_config_func(dev);
-
-	return 0;
-}
-
-int eint_mtk_init_callback(eint_mtk_callback_t *callback, uint8_t first_line, uint8_t num_lines,
-			   eint_mtk_cb_handler_t cb_handler, const struct device *cb_dev,
-			   void *cb_arg)
-{
-	if ((callback == NULL) || (cb_handler == NULL) || (cb_dev == NULL))
-		return -EINVAL;
-
-	callback->cb_handler = cb_handler;
-	callback->cb_dev = cb_dev;
-	callback->cb_arg = cb_arg;
-	callback->first_line = first_line;
-	callback->num_lines = num_lines;
-
-	return (0);
-}
-
-int eint_mtk_add_callback(const struct device *dev, eint_mtk_callback_t *callback)
-{
-	sys_snode_t *prev_callback;
-	eint_mtk_data_t *eint_data = dev->data;
-	k_spinlock_key_t key;
-
-	if ((callback == NULL) || (callback->cb_handler == NULL) || (callback->cb_dev == NULL))
-		return -EINVAL;
-
-	key = k_spin_lock(&(eint_data->lock));
-
-	if (sys_slist_find(&(eint_data->eint_callbacks), &(callback->node), &prev_callback)) {
-		/* Duplicate callback setting. */
-		k_spin_unlock(&(eint_data->lock), key);
-
-		return -EINVAL;
-	}
-
-	sys_slist_prepend(&(eint_data->eint_callbacks), &(callback->node));
-
-	k_spin_unlock(&(eint_data->lock), key);
-
-	return 0;
-}
-
-void eint_mtk_remove_callback(const struct device *dev, eint_mtk_callback_t *callback)
-{
-	eint_mtk_data_t *eint_data = dev->data;
-	k_spinlock_key_t key;
-
-	key = k_spin_lock(&(eint_data->lock));
-
-	sys_slist_find_and_remove(&(eint_data->eint_callbacks), &(callback->node));
-
-	k_spin_unlock(&(eint_data->lock), key);
-}
-
-int eint_mtk_enable(const struct device *dev, uint8_t line)
-{
-	const eint_mtk_config_t *eint_config = dev->config;
-
-	if (line >= eint_config->num_lines)
-		return -EINVAL;
-
-	sys_write32(line_to_bit_mask(line), (DEVICE_MMIO_GET(dev) + offset_mask_set(line)));
-
-	return 0;
-}
-
-int eint_mtk_disable(const struct device *dev, uint8_t line)
-{
-	const eint_mtk_config_t *eint_config = dev->config;
-
-	if (line >= eint_config->num_lines)
-		return -EINVAL;
-
-	sys_write32(line_to_bit_mask(line), (DEVICE_MMIO_GET(dev) + offset_mask_clr(line)));
-
-	return 0;
-}
-
-bool eint_mtk_is_enabled(const struct device *dev, uint8_t line)
-{
-	const eint_mtk_config_t *eint_config = dev->config;
-	uint32_t val;
-
-	if (line >= eint_config->num_lines)
-		return false;
-
-	val = sys_read32(DEVICE_MMIO_GET(dev) + offset_mask(line));
-	val &= line_to_bit_mask(line);
-
-	return (val != 0);
-}
-
-#define EINT_DECLARE_CFG(n, IRQ_FUNC_INIT)                      \
-	static const eint_mtk_config_t eint_mtk_##n##_config = {    \
-		DEVICE_MMIO_ROM_INIT(DT_DRV_INST(n)),                   \
-		.num_lines = DT_INST_PROP(n, num_lines),                \
-		IRQ_FUNC_INIT                                           \
-	}
-
-#define EINT_IRQ_CONFIG_FUNC(n)                                                 \
-	static void irq_config_func_##n(const struct device *dev) {                 \
-		IRQ_CONNECT(DT_INST_IRQN(n), DT_INST_IRQ(n, priority), eint_mtk_isr,    \
-			DEVICE_DT_INST_GET(n), 0);                                          \
-		irq_enable(DT_INST_IRQN(n));                                            \
-	}
-
-#define EINT_IRQ_CFG_FUNC_INIT(n)   \
-		.irq_config_func = irq_config_func_##n,
-
-#define EINT_INIT_CFG(n)    EINT_DECLARE_CFG(n, EINT_IRQ_CFG_FUNC_INIT(n))
-
-#define EINT_INIT(n)                                                        \
-	static eint_mtk_data_t eint_mtk_##n##_data;                             \
-	static const eint_mtk_config_t eint_mtk_##n##_config;                   \
-	EINT_IRQ_CONFIG_FUNC(n)                                                 \
-	DEVICE_DT_INST_DEFINE(n, &eint_mtk_init, NULL, &eint_mtk_##n##_data,    \
-		&eint_mtk_##n##_config, PRE_KERNEL_1, CONFIG_INTC_INIT_PRIORITY,    \
-		NULL);                                                              \
-	EINT_INIT_CFG(n);
+#define EINT_INIT(n)                                                                               \
+	EINT_DECLARE_CFG(n)                                                                        \
+	DEVICE_DT_INST_DEFINE(n, &eint_mtk_init, NULL, &eint_mtk_##n##_data,                       \
+			      &eint_mtk_##n##_config, PRE_KERNEL_1, CONFIG_INTC_INIT_PRIORITY,     \
+			      NULL);
 
 DT_INST_FOREACH_STATUS_OKAY(EINT_INIT)
