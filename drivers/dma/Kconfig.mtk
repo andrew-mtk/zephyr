@@ -1,0 +1,9 @@
+# Copyright (c) 2025 MASSDRIVER EI <massdriver.space>
+# SPDX-License-Identifier: Apache-2.0
+
+config DMA_MTK_MEMIF
+	bool "Mediatek Audio Front End MEMIF DMA driver"
+	default y
+	depends on DT_HAS_MEDIATEK_MEMIF_ENABLED
+	help
+	  AFE MEMIF DMA driver for Mediatek SoCs

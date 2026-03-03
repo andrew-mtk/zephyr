@@ -28,5 +28,7 @@ CONFIG_UART_CONSOLE=y
 
 CONFIG_CLOCK_CONTROL=y
 
+CONFIG_DMA=y
+
 # Ensure the EINT interrupt driver is initialized early
 CONFIG_INTC_INIT_PRIORITY=2
