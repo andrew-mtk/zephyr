@@ -6,12 +6,12 @@
 
 #define DT_DRV_COMPAT mediatek_mt8365_gpio
 
-#include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/uart.h>
 #include <zephyr/drivers/gpio/gpio_utils.h>
-#include <zephyr/drivers/interrupt_controller/intc_mtk_eint.h>
-#include <zephyr/drivers/pinctrl.h>
-#include <zephyr/sys/slist.h>
 
+#include "gpio_mtk_common.h"
+
+/* Register offsets in order of offset values. */
 #define GPIO_OFFSET_DIN_0          0x0000
 #define GPIO_OFFSET_DIN_1          0x0010
 #define GPIO_OFFSET_DIN_2          0x0020
@@ -78,262 +78,72 @@
 #define GPIO_OFFSET_PULL_SEL_4_SET 0x0944
 #define GPIO_OFFSET_PULL_SEL_4_CLR 0x0948
 
-static const uint32_t pin_to_din_offset_map[] = {
-	/*   0 -  31 */ GPIO_OFFSET_DIN_0,
-	/*  32 -  63 */ GPIO_OFFSET_DIN_1,
-	/*  64 -  95 */ GPIO_OFFSET_DIN_2,
-	/*  96 - 127 */ GPIO_OFFSET_DIN_3,
-	/* 128 - 159 */ GPIO_OFFSET_DIN_4,
-};
+#define GPIO_OFFSET_DIN_DELTA          (GPIO_OFFSET_DIN_1 - GPIO_OFFSET_DIN_0)
+#define GPIO_OFFSET_DOUT_SET_DELTA     (GPIO_OFFSET_DOUT_1_SET - GPIO_OFFSET_DOUT_0_SET)
+#define GPIO_OFFSET_DOUT_CLR_DELTA     (GPIO_OFFSET_DOUT_1_CLR - GPIO_OFFSET_DOUT_0_CLR)
+#define GPIO_OFFSET_DIR_SET_DELTA      (GPIO_OFFSET_DIR_1_SET - GPIO_OFFSET_DIR_0_SET)
+#define GPIO_OFFSET_DIR_CLR_DELTA      (GPIO_OFFSET_DIR_1_CLR - GPIO_OFFSET_DIR_0_CLR)
+#define GPIO_OFFSET_PULL_EN_SET_DELTA  (GPIO_OFFSET_PULL_EN_1_SET - GPIO_OFFSET_PULL_EN_0_SET)
+#define GPIO_OFFSET_PULL_EN_CLR_DELTA  (GPIO_OFFSET_PULL_EN_1_CLR - GPIO_OFFSET_PULL_EN_0_CLR)
+#define GPIO_OFFSET_PULL_SEL_SET_DELTA (GPIO_OFFSET_PULL_SEL_1_SET - GPIO_OFFSET_PULL_SEL_0_SET)
+#define GPIO_OFFSET_PULL_SEL_CLR_DELTA (GPIO_OFFSET_PULL_SEL_1_CLR - GPIO_OFFSET_PULL_SEL_0_CLR)
 
-static const uint32_t pin_to_dout_set_offset_map[] = {
-	/*   0 -  31 */ GPIO_OFFSET_DOUT_0_SET,
-	/*  32 -  63 */ GPIO_OFFSET_DOUT_1_SET,
-	/*  64 -  95 */ GPIO_OFFSET_DOUT_2_SET,
-	/*  96 - 127 */ GPIO_OFFSET_DOUT_3_SET,
-	/* 128 - 159 */ GPIO_OFFSET_DOUT_4_SET,
-};
+static uint32_t reg_offset(const struct device *dev, reg_type_t reg_type);
 
-static const uint32_t pin_to_dout_clr_offset_map[] = {
-	/*   0 -  31 */ GPIO_OFFSET_DOUT_0_CLR,
-	/*  32 -  63 */ GPIO_OFFSET_DOUT_1_CLR,
-	/*  64 -  95 */ GPIO_OFFSET_DOUT_2_CLR,
-	/*  96 - 127 */ GPIO_OFFSET_DOUT_3_CLR,
-	/* 128 - 159 */ GPIO_OFFSET_DOUT_4_CLR,
-};
-
-static const uint32_t pin_to_dir_set_offset_map[] = {
-	/*   0 -  31 */ GPIO_OFFSET_DIR_0_SET,
-	/*  32 -  63 */ GPIO_OFFSET_DIR_1_SET,
-	/*  64 -  95 */ GPIO_OFFSET_DIR_2_SET,
-	/*  96 - 127 */ GPIO_OFFSET_DIR_3_SET,
-	/* 128 - 159 */ GPIO_OFFSET_DIR_4_SET,
-};
-
-static const uint32_t pin_to_dir_clr_offset_map[] = {
-	/*   0 -  31 */ GPIO_OFFSET_DIR_0_CLR,
-	/*  32 -  63 */ GPIO_OFFSET_DIR_1_CLR,
-	/*  64 -  95 */ GPIO_OFFSET_DIR_2_CLR,
-	/*  96 - 127 */ GPIO_OFFSET_DIR_3_CLR,
-	/* 128 - 159 */ GPIO_OFFSET_DIR_4_CLR,
-};
-
-static const uint32_t pin_to_pull_en_set_offset_map[] = {
-	/*   0 -  31 */ GPIO_OFFSET_PULL_EN_0_SET,
-	/*  32 -  63 */ GPIO_OFFSET_PULL_EN_1_SET,
-	/*  64 -  95 */ GPIO_OFFSET_PULL_EN_2_SET,
-	/*  96 - 127 */ GPIO_OFFSET_PULL_EN_3_SET,
-	/* 128 - 159 */ GPIO_OFFSET_PULL_EN_4_SET,
-};
-
-static const uint32_t pin_to_pull_en_clr_offset_map[] = {
-	/*   0 -  31 */ GPIO_OFFSET_PULL_EN_0_CLR,
-	/*  32 -  63 */ GPIO_OFFSET_PULL_EN_1_CLR,
-	/*  64 -  95 */ GPIO_OFFSET_PULL_EN_2_CLR,
-	/*  96 - 127 */ GPIO_OFFSET_PULL_EN_3_CLR,
-	/* 128 - 159 */ GPIO_OFFSET_PULL_EN_4_CLR,
-};
-
-static const uint32_t pin_to_pull_sel_set_offset_map[] = {
-	/*   0 -  31 */ GPIO_OFFSET_PULL_SEL_0_SET,
-	/*  32 -  63 */ GPIO_OFFSET_PULL_SEL_1_SET,
-	/*  64 -  95 */ GPIO_OFFSET_PULL_SEL_2_SET,
-	/*  96 - 127 */ GPIO_OFFSET_PULL_SEL_3_SET,
-	/* 128 - 159 */ GPIO_OFFSET_PULL_SEL_4_SET,
-};
-
-static const uint32_t pin_to_pull_sel_clr_offset_map[] = {
-	/*   0 -  31 */ GPIO_OFFSET_PULL_SEL_0_CLR,
-	/*  32 -  63 */ GPIO_OFFSET_PULL_SEL_1_CLR,
-	/*  64 -  95 */ GPIO_OFFSET_PULL_SEL_2_CLR,
-	/*  96 - 127 */ GPIO_OFFSET_PULL_SEL_3_CLR,
-	/* 128 - 159 */ GPIO_OFFSET_PULL_SEL_4_CLR,
-};
-
-#define DEV_CFG(dev)  ((const gpio_mtk_config_t *const)((dev)->config))
-#define DEV_DATA(dev) ((gpio_mtk_data_t *const)((dev)->data))
-
-typedef struct {
-	struct gpio_driver_config common;
-	DEVICE_MMIO_NAMED_ROM(reg_base);
-	const struct device *eint_dev;
-	uint16_t idx;
-	uint16_t num_gpio_pins;
-	uint32_t gpio_pin_mask;
-} gpio_mtk_config_t;
-
-typedef struct {
-	struct gpio_driver_data common;
-	DEVICE_MMIO_NAMED_RAM(reg_base);
-	eint_mtk_callback_t eint_callback;
-	sys_slist_t gpio_callbacks;
-} gpio_mtk_data_t;
-
-static int gpio_mtk_pin_configure(const struct device *dev, gpio_pin_t pin, gpio_flags_t flags);
-static int gpio_mtk_port_set_masked_raw(const struct device *dev, gpio_port_pins_t mask,
-					gpio_port_value_t value);
-static int gpio_mtk_port_get_raw(const struct device *dev, gpio_port_value_t *value);
-static int gpio_mtk_port_set_bits_raw(const struct device *dev, gpio_port_pins_t pins);
-static int gpio_mtk_port_clr_bits_raw(const struct device *dev, gpio_port_pins_t pins);
-static int gpio_mtk_port_toggle_bits(const struct device *dev, gpio_port_pins_t pins);
-static int gpio_mtk_pin_interrupt_configure(const struct device *dev, gpio_pin_t pin,
-					    enum gpio_int_mode mode, enum gpio_int_trig trig);
-static int gpio_mtk_manage_callback(const struct device *dev, struct gpio_callback *cb, bool set);
-static void eint_handler(const struct device *dev, uint8_t line, void *arg);
-static int gpio_mtk_init(const struct device *dev);
-
-static int gpio_mtk_pin_configure(const struct device *dev, gpio_pin_t pin, gpio_flags_t flags)
-{
-	uint32_t shift = pin % 32;
-	const gpio_mtk_config_t *gpio_config = dev->config;
-
-	/* Set direction */
-	if ((flags & GPIO_OUTPUT) != 0) {
-		sys_write32((1 << shift), DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-						  pin_to_dir_set_offset_map[gpio_config->idx]);
-	} else {
-		sys_write32((1 << shift), DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-						  pin_to_dir_clr_offset_map[gpio_config->idx]);
-	}
-
-	/* Set output level */
-	if ((flags & GPIO_OUTPUT) != 0) {
-		if ((flags & GPIO_OUTPUT_INIT_HIGH) != 0) {
-			gpio_mtk_port_set_bits_raw(dev, (gpio_port_pins_t)(1 << shift));
-		} else if ((flags & GPIO_OUTPUT_INIT_LOW) != 0) {
-			gpio_mtk_port_clr_bits_raw(dev, (gpio_port_pins_t)(1 << shift));
-		}
-	}
-
-	/* Set pull up / down */
-	if ((flags & GPIO_PULL_UP) != 0) {
-		sys_write32((1 << shift), DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-						  pin_to_pull_sel_set_offset_map[gpio_config->idx]);
-		sys_write32((1 << shift), DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-						  pin_to_pull_en_set_offset_map[gpio_config->idx]);
-	} else if ((flags & GPIO_PULL_DOWN) != 0) {
-		sys_write32((1 << shift), DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-						  pin_to_pull_sel_clr_offset_map[gpio_config->idx]);
-		sys_write32((1 << shift), DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-						  pin_to_pull_en_set_offset_map[gpio_config->idx]);
-	} else {
-		sys_write32((1 << shift), DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-						  pin_to_pull_en_clr_offset_map[gpio_config->idx]);
-	}
-
-	return 0;
-}
-
-static int gpio_mtk_port_get_raw(const struct device *dev, gpio_port_value_t *value)
+static uint32_t reg_offset(const struct device *dev, reg_type_t reg_type)
 {
 	const gpio_mtk_config_t *gpio_config = dev->config;
 
-	(*value) = sys_read32(DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-			      pin_to_din_offset_map[gpio_config->idx]) &
-		   gpio_config->gpio_pin_mask;
+	switch (reg_type) {
+	case REG_TYPE_DIN:
+		return (uint32_t)(GPIO_OFFSET_DIN_0 + (gpio_config->idx * GPIO_OFFSET_DIN_DELTA));
+		break;
 
-	return 0;
-}
+	case REG_TYPE_DOUT_SET:
+		return (uint32_t)(GPIO_OFFSET_DOUT_0_SET +
+				  (gpio_config->idx * GPIO_OFFSET_DOUT_SET_DELTA));
+		break;
 
-static int gpio_mtk_port_set_masked_raw(const struct device *dev, gpio_port_pins_t mask,
-					gpio_port_value_t value)
-{
-	gpio_mtk_port_set_bits_raw(dev, (value & mask));
-	gpio_mtk_port_clr_bits_raw(dev, ((value ^ mask) & mask));
+	case REG_TYPE_DOUT_CLR:
+		return (uint32_t)(GPIO_OFFSET_DOUT_0_CLR +
+				  (gpio_config->idx * GPIO_OFFSET_DOUT_CLR_DELTA));
+		break;
 
-	return 0;
-}
+	case REG_TYPE_DIR_SET:
+		return (uint32_t)(GPIO_OFFSET_DIR_0_SET +
+				  (gpio_config->idx * GPIO_OFFSET_DIR_SET_DELTA));
+		break;
 
-static int gpio_mtk_port_set_bits_raw(const struct device *dev, gpio_port_pins_t pins)
-{
-	const gpio_mtk_config_t *gpio_config = dev->config;
+	case REG_TYPE_DIR_CLR:
+		return (uint32_t)(GPIO_OFFSET_DIR_0_CLR +
+				  (gpio_config->idx * GPIO_OFFSET_DIR_CLR_DELTA));
+		break;
 
-	pins &= gpio_config->gpio_pin_mask;
-	if (pins != 0) {
-		sys_write32(pins, DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-					  pin_to_dout_set_offset_map[gpio_config->idx]);
+	case REG_TYPE_PULL_EN_SET:
+		return (uint32_t)(GPIO_OFFSET_PULL_EN_0_SET +
+				  (gpio_config->idx * GPIO_OFFSET_PULL_EN_SET_DELTA));
+		break;
+
+	case REG_TYPE_PULL_EN_CLR:
+		return (uint32_t)(GPIO_OFFSET_PULL_EN_0_CLR +
+				  (gpio_config->idx * GPIO_OFFSET_PULL_EN_CLR_DELTA));
+		break;
+
+	case REG_TYPE_PULL_SEL_SET:
+		return (uint32_t)(GPIO_OFFSET_PULL_SEL_0_SET +
+				  (gpio_config->idx * GPIO_OFFSET_PULL_SEL_SET_DELTA));
+		break;
+
+	case REG_TYPE_PULL_SEL_CLR:
+		return (uint32_t)(GPIO_OFFSET_PULL_SEL_0_CLR +
+				  (gpio_config->idx * GPIO_OFFSET_PULL_SEL_CLR_DELTA));
+		break;
+
+	default:
+		break;
 	}
 
-	return 0;
-}
-
-static int gpio_mtk_port_clr_bits_raw(const struct device *dev, gpio_port_pins_t pins)
-{
-	const gpio_mtk_config_t *gpio_config = dev->config;
-
-	pins &= gpio_config->gpio_pin_mask;
-	if (pins != 0) {
-		sys_write32(pins, DEVICE_MMIO_NAMED_GET(dev, reg_base) +
-					  pin_to_dout_clr_offset_map[gpio_config->idx]);
-	}
-
-	return 0;
-}
-
-static int gpio_mtk_port_toggle_bits(const struct device *dev, gpio_port_pins_t pins)
-{
-	gpio_port_value_t value;
-
-	gpio_mtk_port_get_raw(dev, &value);
-
-	gpio_mtk_port_set_bits_raw(dev, ((value ^ pins) & pins));
-	gpio_mtk_port_clr_bits_raw(dev, (value & pins));
-
-	return 0;
-}
-
-static int gpio_mtk_pin_interrupt_configure(const struct device *dev, gpio_pin_t pin,
-					    enum gpio_int_mode mode, enum gpio_int_trig trig)
-{
-	return 0;
-}
-
-static int gpio_mtk_manage_callback(const struct device *dev, struct gpio_callback *callback,
-				    bool set)
-{
-	int ret;
-	gpio_mtk_data_t *gpio_data = dev->data;
-
-	ret = gpio_manage_callback(&(gpio_data->gpio_callbacks), callback, set);
-
-	return ret;
-}
-
-static void eint_handler(const struct device *dev, uint8_t line, void *arg)
-{
-	gpio_mtk_data_t *gpio_data = dev->data;
-	const gpio_mtk_config_t *gpio_config = dev->config;
-
-	if (line >= (gpio_config->idx * 32)) {
-		line -= (gpio_config->idx * 32);
-
-		gpio_fire_callbacks(&(gpio_data->gpio_callbacks), dev, BIT(line));
-	}
-}
-
-static int gpio_mtk_init(const struct device *dev)
-{
-	int ret;
-	gpio_mtk_data_t *gpio_data = dev->data;
-	const gpio_mtk_config_t *gpio_config = dev->config;
-
-	DEVICE_MMIO_NAMED_MAP(dev, reg_base, K_MEM_CACHE_NONE);
-
-	sys_slist_init(&(gpio_data->gpio_callbacks));
-
-	/* Add the EINT driver callback. */
-	ret = eint_mtk_init_callback(&(gpio_data->eint_callback), (gpio_config->idx * 32),
-				     ((gpio_config->idx + 1) * 32), eint_handler, dev, NULL);
-	if (ret != 0) {
-		return ret;
-	}
-
-	ret = eint_mtk_add_callback(gpio_config->eint_dev, &(gpio_data->eint_callback));
-	if (ret != 0) {
-		return ret;
-	}
-
-	return 0;
+	return INV_REG_OFFSET;
 }
 
 static DEVICE_API(gpio, gpio_mtk_driver_api) = {
@@ -347,7 +157,9 @@ static DEVICE_API(gpio, gpio_mtk_driver_api) = {
 	.manage_callback = gpio_mtk_manage_callback,
 };
 
-#define GPIO_DECLARE_CONFIG(n)                                                                     \
+#define GPIO_DECLARE_CFG(n)                                                                        \
+	static gpio_mtk_data_t gpio_mtk_##n##_data;                                                \
+                                                                                                   \
 	static const gpio_mtk_config_t gpio_mtk_##n##_config = {                                   \
 		.common = {.port_pin_mask = GPIO_PORT_PIN_MASK_FROM_DT_INST(0)},                   \
 		DEVICE_MMIO_NAMED_ROM_INIT(reg_base, DT_INST_PARENT(n)),                           \
@@ -355,12 +167,11 @@ static DEVICE_API(gpio, gpio_mtk_driver_api) = {
 		.idx = DT_INST_REG_ADDR(n),                                                        \
 		.num_gpio_pins = DT_INST_PROP(n, ngpios),                                          \
 		.gpio_pin_mask = GPIO_PORT_PIN_MASK_FROM_NGPIOS(DT_INST_PROP(n, ngpios)),          \
+		.reg_offset = reg_offset,                                                          \
 	};
 
 #define GPIO_INIT(n)                                                                               \
-	static gpio_mtk_data_t gpio_mtk_##n##_data;                                                \
-	static const gpio_mtk_config_t gpio_mtk_##n##_config;                                      \
-	GPIO_DECLARE_CONFIG(n)                                                                     \
+	GPIO_DECLARE_CFG(n)                                                                        \
 	DEVICE_DT_INST_DEFINE(n, &gpio_mtk_init, NULL, &gpio_mtk_##n##_data,                       \
 			      &gpio_mtk_##n##_config, PRE_KERNEL_1, CONFIG_GPIO_INIT_PRIORITY,     \
 			      &gpio_mtk_driver_api);
