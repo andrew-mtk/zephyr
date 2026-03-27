@@ -4,20 +4,25 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-
 #ifndef DRIVERS_SERIAL_UART_MTK_COMMON_H
 #define DRIVERS_SERIAL_UART_MTK_COMMON_H
 
 #include <stdint.h>
 
 #include <zephyr/device.h>
+#include <zephyr/drivers/clock_control.h>
 #include <zephyr/spinlock.h>
-
 
 typedef struct {
 	DEVICE_MMIO_ROM; /* Must be first */
 
 	uint32_t clock_freq;
+
+#ifdef CONFIG_CLOCK_CONTROL
+	const struct device *clock_dev;
+
+	clock_control_subsys_t clock_subsys;
+#endif
 
 #ifdef CONFIG_PINCTRL
 	const struct pinctrl_dev_config *pinctrl_config;
@@ -31,7 +36,7 @@ typedef struct {
 typedef struct {
 	DEVICE_MMIO_RAM; /* Must be first */
 
-    struct uart_config uart_cfg;
+	struct uart_config uart_cfg;
 
 	struct k_spinlock lock;
 
@@ -41,7 +46,6 @@ typedef struct {
 	void *cb_data;
 #endif
 } uart_mtk_data_t;
-
 
 extern void uart_mtk_poll_out(const struct device *dev, unsigned char c);
 extern int uart_mtk_poll_in(const struct device *dev, unsigned char *c);
@@ -69,6 +73,5 @@ extern void uart_mtk_isr(const struct device *dev);
 #endif
 
 extern int uart_mtk_init(const struct device *dev);
-
 
 #endif /* DRIVERS_SERIAL_UART_MTK_COMMON_H */

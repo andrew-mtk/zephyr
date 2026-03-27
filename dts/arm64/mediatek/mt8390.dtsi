@@ -72,6 +72,12 @@
 		status = "okay";
 	};
 
+	clk_infra_a0: clk_infra_a0@10001000 {
+		compatible = "mediatek,mt8188-clk_infra_a0";
+		reg = <0x10001000 0x1000>;
+		#clock-cells = <1>;
+	};
+
 	pinctrl: pinctrl@10005000 {
 		compatible = "mediatek,mt8390-pinctrl";
 		reg = <0x10005000 0x1000>;
@@ -163,6 +169,7 @@
 		reg = <0x11001100 0x1000>;
 		interrupt-parent = <&gic>;
 		interrupts = <GIC_SPI 141 IRQ_TYPE_LEVEL_LOW IRQ_DEFAULT_PRIORITY>;
+		clocks = <&clk_infra_a0 CLK_INFRA_AO_UART0>;
         clock-frequency = <26000000>;
 		status = "disabled";
 	};
@@ -172,6 +179,7 @@
 		reg = <0x11001200 0x1000>;
 		interrupt-parent = <&gic>;
 		interrupts = <GIC_SPI 142 IRQ_TYPE_LEVEL_LOW IRQ_DEFAULT_PRIORITY>;
+		clocks = <&clk_infra_a0 CLK_INFRA_AO_UART1>;
         clock-frequency = <26000000>;
 		status = "disabled";
 	};
@@ -181,6 +189,7 @@
 		reg = <0x11001300 0x1000>;
 		interrupt-parent = <&gic>;
 		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW IRQ_DEFAULT_PRIORITY>;
+		clocks = <&clk_infra_a0 CLK_INFRA_AO_UART2>;
         clock-frequency = <26000000>;
 		status = "disabled";
 	};
@@ -190,6 +199,7 @@
 		reg = <0x11001400 0x1000>;
 		interrupt-parent = <&gic>;
 		interrupts = <GIC_SPI 723 IRQ_TYPE_LEVEL_LOW IRQ_DEFAULT_PRIORITY>;
+		clocks = <&clk_infra_a0 CLK_INFRA_AO_UART3>;
         clock-frequency = <26000000>;
 		status = "disabled";
 	};
