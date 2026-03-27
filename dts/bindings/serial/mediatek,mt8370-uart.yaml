@@ -11,6 +11,9 @@ properties:
   reg:
     required: true
 
+  clocks:
+    required: true
+
   interrupts:
     required: false
 
@@ -20,7 +23,7 @@ properties:
   current-speed:
     description: |
       Initial baud rate setting for UART. Defaults to baudrate of 38400 if not specified.
-    default: 57600
+    default: 38400
 
   stop-bits:
     description: |
