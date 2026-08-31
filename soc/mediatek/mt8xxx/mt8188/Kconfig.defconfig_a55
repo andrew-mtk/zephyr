@@ -3,8 +3,9 @@
 
 if SOC_MT8188_A55
 
+# The AFE interrupt is GIC_SPI 822
 config NUM_IRQS
-	default 270
+	default 1024
 
 config CLOCK_CONTROL_INIT_PRIORITY
 	default 1
