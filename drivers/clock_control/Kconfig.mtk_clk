@@ -16,3 +16,11 @@ config CLOCK_CONTROL_MT8188_APMIXED
 	depends on DT_HAS_MEDIATEK_MT8188_APMIXEDSYS_ENABLED
 	help
 	  Enable the APMIXEDSYS PLL driver for MT8188 (APLL1/APLL2 audio PLLs).
+
+config CLOCK_CONTROL_MT8188_TOPCKGEN
+	bool "MT8188 TOPCKGEN mux+gate clock driver"
+	default y
+	depends on CLOCK_CONTROL
+	depends on DT_HAS_MEDIATEK_MT8188_TOPCKGEN_ENABLED
+	help
+	  Enable the TOPCKGEN mux+gate clock driver for MT8188 audio CLK_TOP_* clocks.

@@ -70,6 +70,7 @@ zephyr_library_sources_ifdef(CONFIG_CLOCK_CONTROL_SF32LB_HXT48        clock_cont
 zephyr_library_sources_ifdef(CONFIG_CLOCK_CONTROL_SF32LB_RCC          clock_control_sf32lb_rcc.c)
 zephyr_library_sources_ifdef(CONFIG_CLOCK_CONTROL_MT8188              clock_control_mtk_common.c clock_control_mtk_mt8188_infra_a0.c)
 zephyr_library_sources_ifdef(CONFIG_CLOCK_CONTROL_MT8188_APMIXED      clock_control_mtk_mt8188_apmixed.c)
+zephyr_library_sources_ifdef(CONFIG_CLOCK_CONTROL_MT8188_TOPCKGEN     clock_control_mtk_mt8188_topckgen.c)
 
 if(CONFIG_CLOCK_CONTROL_RENESAS_RZA2M_CPG)
   zephyr_library_sources(clock_control_renesas_rza2m_cpg.c)
