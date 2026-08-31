@@ -1,7 +1,7 @@
 # Copyright 2023 The ChromiumOS Authors
 # SPDX-License-Identifier: Apache-2.0
 
-orsource "*/Kconfig.defconfig"
+orsource "*/Kconfig.defconfig_adsp"
 
 if SOC_FAMILY_MTK
 
