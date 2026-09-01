@@ -1,7 +1,7 @@
 # Copyright 2024 The ChromiumOS Authors
 # SPDX-License-Identifier: Apache-2.0
 
-if SOC_MT8186
+if SOC_MT8186_ADSP
 
 # FIXME: move this to 818x series code to share w/8188
 config NUM_2ND_LEVEL_AGGREGATORS
@@ -9,5 +9,17 @@ config NUM_2ND_LEVEL_AGGREGATORS
 
 config 2ND_LVL_INTR_00_OFFSET
 	default 2
+
+config XTENSA_CCOUNT_HZ
+	default 400000000
+
+config SOC_TOOLCHAIN_NAME
+	default "mtk_mt818x_adsp"
+
+# This core has only one software interrupt and it lives at level 2, underneath
+# other hardware interrupts like the timer, so it cannot reliably do this.
+# Unselect so the tests do not try to exercise it.
+config IRQ_OFFLOAD_NESTED
+	default n
 
 endif

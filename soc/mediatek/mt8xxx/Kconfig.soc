@@ -4,6 +4,20 @@
 config SOC_FAMILY_MTK
 	bool
 
+config SOC_FAMILY
+	default "mt8xxx" if SOC_FAMILY_MTK
+
+# Cluster type. Every SoC in this family has an Xtensa audio DSP, and some also
+# have a Cortex-A cluster. Anything that differs between the two is keyed off
+# these two symbols rather than off individual SoC/cluster pairs, so adding a
+# cluster does not mean editing the family Kconfig, Kconfig.defconfig and
+# CMakeLists.txt in step. Each cluster selects its type in <soc>/Kconfig.soc.
+config SOC_MTK_ADSP_CLUSTER
+	bool
+
+config SOC_MTK_ARM_CLUSTER
+	bool
+
 config SOC_SERIES_MT8195
 	bool
 	select SOC_FAMILY_MTK
@@ -22,24 +36,24 @@ config SOC_SERIES_MT8196
 	help
 	  Mediatek MT8196 Audio DSPs
 
-config SOC_MT8195
-	bool
-	select SOC_SERIES_MT8195
+# Series strings stay here rather than in the per-SoC files: a series can span
+# several SoCs, as mt818x does for the MT8186 and MT8188.
+config SOC_SERIES
+	default "mt8195" if SOC_SERIES_MT8195
+	default "mt818x" if SOC_SERIES_MT818X
+	default "mt8196" if SOC_SERIES_MT8196
 
-config SOC_MT8186
-	bool
-	select SOC_SERIES_MT818X
+# Subdirectory of <soc>/ holding this cluster's sources and linker script. The
+# cpucluster name from soc.yml is not exposed to Kconfig or CMake, so it has to
+# be named somewhere. Every audio DSP uses adsp/; a Cortex-A cluster adds its
+# own default in <soc>/Kconfig.soc.
+#
+# Keep the value equal to the cpucluster name in soc.yml. Nothing enforces it,
+# but it is what maps a board target such as mt8390_genio_700_evk/mt8188/a55 to
+# soc/mediatek/mt8xxx/mt8188/a55/.
+config SOC_MTK_CLUSTER_SUBDIR
+	string
+	default "adsp" if SOC_MTK_ADSP_CLUSTER
 
-config SOC_MT8188
-	bool
-	select SOC_SERIES_MT818X
-
-config SOC_MT8196
-	bool
-	select SOC_SERIES_MT8196
-
-config SOC
-	default "mt8195" if SOC_MT8195
-	default "mt8186" if SOC_MT8186
-	default "mt8188" if SOC_MT8188
-	default "mt8196" if SOC_MT8196
+# Per-SoC files declare that SoC and all of its cpuclusters.
+rsource "*/Kconfig.soc"
