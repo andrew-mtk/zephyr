@@ -64,6 +64,19 @@
 	dram: memory@8000 {
 		reg = <0x00008000 DT_SIZE_M(2)>;
 	};
+
+	/*
+	 * Dedicated region for audio DMA buffers, kept outside zephyr,sram so
+	 * AFE DMA cannot reach the Zephyr image, stack or heap. Place buffers
+	 * here with:
+	 *   Z_GENERIC_SECTION(LINKER_DT_NODE_REGION_NAME(DT_NODELABEL(dma_region)))
+	 */
+	dma_region: memory@61000000 {
+		compatible = "zephyr,memory-region", "mmio-sram";
+		device_type = "memory";
+		reg = <0x61000000 DT_SIZE_M(8)>;
+		zephyr,memory-region = "DMA_REGION";
+	};
 };
 
 &uart1 {
@@ -78,10 +91,16 @@
 	status = "okay";
 };
 
-/*
-&i2s {
-	pinctrl-0 = <&i2s_default>;
+&gpio96_127 {
+	status = "okay";
+};
+
+&gpio128_159 {
+	status = "okay";
+};
+
+&afe {
+	pinctrl-0 = <&etdm_default>;
 	pinctrl-names = "default";
 	status = "okay";
 };
-*/
