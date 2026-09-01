@@ -1,12 +1,28 @@
 # Copyright 2023 The ChromiumOS Authors
 # SPDX-License-Identifier: Apache-2.0
 
+set(cluster ${CONFIG_SOC}/${CONFIG_SOC_MTK_CLUSTER_SUBDIR})
+
+if(CONFIG_SOC_MTK_ARM_CLUSTER)
+  # Cortex-A cluster. Shares the family directory with the Xtensa audio DSPs but
+  # none of their sources, linker script or image tooling.
+  zephyr_include_directories(${cluster})
+
+  zephyr_sources(${cluster}/soc.c)
+  zephyr_sources_ifdef(CONFIG_ARM_MMU ${cluster}/mmu_regions.c)
+
+  set(SOC_LINKER_SCRIPT ${ZEPHYR_BASE}/include/zephyr/arch/arm64/scripts/linker.ld
+      CACHE INTERNAL "")
+
+  return()
+endif()
+
 zephyr_library_sources(soc.c irq.c mbox.c)
 
-zephyr_library_sources_ifdef(CONFIG_SOC_SERIES_MT8195 ${CONFIG_SOC}/adsp/cpuclk.c)
-zephyr_library_sources_ifdef(CONFIG_SOC_MT8188 ${CONFIG_SOC}/adsp/cpuclk.c)
+zephyr_library_sources_ifdef(CONFIG_SOC_SERIES_MT8195 ${cluster}/cpuclk.c)
+zephyr_library_sources_ifdef(CONFIG_SOC_MT8188 ${cluster}/cpuclk.c)
 
-set(SOC_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/${CONFIG_SOC}/adsp/linker.ld CACHE INTERNAL "")
+set(SOC_LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/${cluster}/linker.ld CACHE INTERNAL "")
 
 add_custom_target(dsp_img ALL
 	DEPENDS ${ZEPHYR_FINAL_EXECUTABLE}

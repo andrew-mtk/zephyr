@@ -8,12 +8,12 @@
 
 #include <mem.h>
 #include <zephyr/dt-bindings/gpio/gpio.h>
-#include <mediatek/mt8390.dtsi>
-#include "genio_700_evk-pinctrl.dtsi"
+#include <mediatek/mt8188.dtsi>
+#include "mt8390_genio_700_evk-pinctrl.dtsi"
 
 / {
-	model = "MediaTek GENION 700 EVK (4*Cortex-A55 and 4*Cortex-A78)";
-	compatible = "mediatek,mt8390-evk";
+	model = "MediaTek MT8390 GENIO 700 EVK (4*Cortex-A55 and 4*Cortex-A78)";
+	compatible = "mediatek,mt8188-evk";
 
 	aliases {
 		trigger = &trigger_gpio;

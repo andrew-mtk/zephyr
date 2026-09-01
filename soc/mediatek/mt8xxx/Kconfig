@@ -2,4 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config SOC_FAMILY_MTK
-	select XTENSA
+	select XTENSA if SOC_MTK_ADSP_CLUSTER
+
+# Per-SoC files hold the cluster-specific hardware selects.
+orsource "*/Kconfig"

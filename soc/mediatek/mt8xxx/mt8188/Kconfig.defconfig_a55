@@ -1,0 +1,12 @@
+# Copyright 2025 MediaTek
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_MT8188_A55
+
+config NUM_IRQS
+	default 270
+
+config CLOCK_CONTROL_INIT_PRIORITY
+	default 1
+
+endif

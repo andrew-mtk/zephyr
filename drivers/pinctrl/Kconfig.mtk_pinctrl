@@ -18,10 +18,10 @@ config PINCTRL_MT8370
 	help
 	  Enable the MediaTek MT8370 PINCTRL driver.
 
-config PINCTRL_MT8390
-	bool "MediaTek MT8390 PINCTRL driver"
+config PINCTRL_MT8188
+	bool "MediaTek MT8188 PINCTRL driver"
 	default y
-	depends on SOC_MT8390
+	depends on SOC_MT8188_A55
     depends on DT_HAS_MEDIATEK_MT8188_PINCTRL_ENABLED
 	help
-	  Enable the MediaTek MT8390 PINCTRL driver.
+	  Enable the MediaTek MT8188 PINCTRL driver.

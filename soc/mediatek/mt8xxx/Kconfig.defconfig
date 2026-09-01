@@ -1,9 +1,31 @@
 # Copyright 2023 The ChromiumOS Authors
 # SPDX-License-Identifier: Apache-2.0
 
-orsource "*/Kconfig.defconfig_adsp"
+# Per-SoC files first, so a SoC can override the cluster-wide defaults below.
+orsource "*/Kconfig.defconfig_*"
 
-if SOC_FAMILY_MTK
+if SOC_MTK_ARM_CLUSTER
+
+# Workaround for not being able to have commas in macro arguments
+DT_CHOSEN_Z_FLASH := zephyr,flash
+
+config FLASH_SIZE
+	default $(dt_chosen_reg_size_int,$(DT_CHOSEN_Z_FLASH),0,K)
+
+config FLASH_BASE_ADDRESS
+	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_FLASH))
+
+# Enable GIC Safe Configuration to run multiple OSes on the Cortex-A cores
+config GIC_SAFE_CONFIG
+	default y
+
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	default 8000000
+
+endif # SOC_MTK_ARM_CLUSTER
+
+# Everything below is Xtensa audio-DSP specific.
+if SOC_MTK_ADSP_CLUSTER
 
 config INTC_MTK_ADSP
 	default y
@@ -23,12 +45,7 @@ config MAX_IRQ_PER_AGGREGATOR
 config 2ND_LVL_ISR_TBL_OFFSET
 	default 32
 
-# The 8186/8188 core has only one software interrupt that lives at
-# level 2, underneath other hardware interrupts like timer, so it
-# can't reliably do this.  Unselect so the tests don't try to exercise
-# it.
 config IRQ_OFFLOAD_NESTED
-	default n if SOC_SERIES_MT818X
 	default y
 
 config CPU_HAS_DCACHE
@@ -57,12 +74,6 @@ config WINSTREAM
 config LOG_BACKEND_ADSP
 	default y if LOG
 
-config XTENSA_CCOUNT_HZ
-	default 720000000 if SOC_MT8195
-	default 400000000 if SOC_MT8186
-	default 800000000 if SOC_MT8188
-	default 800000000 if SOC_MT8196
-
 config SYS_CLOCK_HW_CYCLES_PER_SEC
 	default $(dt_node_int_prop_int,$(dt_nodelabel_path,ostimer64),freq-hz)
 
@@ -85,11 +96,6 @@ config XTENSA_HAL
 	default n if "$(ZEPHYR_TOOLCHAIN_VARIANT)" = "xt-clang"
 	default y
 
-config SOC_TOOLCHAIN_NAME
-	default "mtk_mt8195_adsp" if SOC_SERIES_MT8195
-	default "mtk_mt818x_adsp" if SOC_SERIES_MT818X
-	default "mtk_mt8196_adsp" if SOC_SERIES_MT8196
-
 config XTENSA_RESET_VECTOR
 	default n
 
@@ -109,4 +115,4 @@ config GEN_SW_ISR_TABLE
 config GEN_IRQ_VECTOR_TABLE
 	default n
 
-endif # SOC_FAMILY_MTK
+endif # SOC_MTK_ADSP_CLUSTER

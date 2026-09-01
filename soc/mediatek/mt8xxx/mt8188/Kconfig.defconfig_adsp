@@ -1,12 +1,24 @@
 # Copyright 2024 The ChromiumOS Authors
 # SPDX-License-Identifier: Apache-2.0
 
-if SOC_MT8188
+if SOC_MT8188_ADSP
 
 config NUM_2ND_LEVEL_AGGREGATORS
 	default 1
 
 config 2ND_LVL_INTR_00_OFFSET
 	default 2
+
+config XTENSA_CCOUNT_HZ
+	default 800000000
+
+config SOC_TOOLCHAIN_NAME
+	default "mtk_mt818x_adsp"
+
+# This core has only one software interrupt and it lives at level 2, underneath
+# other hardware interrupts like the timer, so it cannot reliably do this.
+# Unselect so the tests do not try to exercise it.
+config IRQ_OFFLOAD_NESTED
+	default n
 
 endif
