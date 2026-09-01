@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-identifier: i510_pumpkin/mt8370/a55
-name: MediaTek i510 Pumpkin (4*Cortex-A55 and 2*Cortex-A78)
+identifier: mt8370_genio_510_evk/mt8188/a55
+name: MediaTek MT8370 GENIO 510 EVK (4*Cortex-A55 and 2*Cortex-A78)
 type: mcu
 arch: arm64
 toolchain:
@@ -15,7 +15,6 @@ ram: 1024
 supported:
   - pinctrl
   - uart
-  - i2s
 testing:
   ignore_tags:
     - bluetooth

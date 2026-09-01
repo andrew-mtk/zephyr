@@ -14,7 +14,7 @@ properties:
 child-binding:
   child-binding:
     description: |
-        MT8370 pins controller pin configuration states.
+        MT8188 pins controller pin configuration states.
 
     include:
       - name: pincfg-node.yaml
