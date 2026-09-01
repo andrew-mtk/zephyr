@@ -1647,7 +1647,7 @@ static int bus_protect_disable(uintptr_t infra)
  * these registers) and before clock init / register defaults (the reset
  * would otherwise wipe values written afterward).
  */
-static int mt8188_afe_reset(struct mt8188_afe *afe)
+static __maybe_unused int mt8188_afe_reset(struct mt8188_afe *afe)
 {
 	uintptr_t toprgu;
 	uint32_t val;
@@ -1717,6 +1717,18 @@ static int mt8188_afe_init(const struct device *dev)
 		return -ENODEV;
 	}
 
+	/* Reset the audio subsystem to a known state before clock init.
+	 * Linux mt8188 probe: bus_protect_enable → reset_control_reset →
+	 * bus_protect_disable, run before mt8188_afe_init_clock().
+	 *
+	 * Left disabled; see the commit message for why:
+	 *
+	 *	ret = mt8188_afe_reset(afe);
+	 *	if (ret) {
+	 *		return ret;
+	 *	}
+	 */
+
 	/* Configure audio domain sidebands via SMC.
 	 * Linux: arm_smccc_smc(MTK_SIP_AUDIO_CONTROL,
 	 *                      MTK_AUDIO_SMC_OP_DOMAIN_SIDEBANDS, ...)
@@ -1730,15 +1742,6 @@ static int mt8188_afe_init(const struct device *dev)
 		arm_smccc_smc(MTK_SIP_AUDIO_CONTROL,
 			      MTK_AUDIO_SMC_OP_DOMAIN_SIDEBANDS,
 			      0, 0, 0, 0, 0, 0, &smc_res);
-	}
-
-	/* Reset the audio subsystem to a known state before clock init.
-	 * Linux mt8188 probe: bus_protect_enable → reset_control_reset →
-	 * bus_protect_disable, run before mt8188_afe_init_clock().
-	 */
-	ret = mt8188_afe_reset(afe);
-	if (ret) {
-		return ret;
 	}
 
 	/* Enable AFE bus and HW clocks before touching registers.
