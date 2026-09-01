@@ -1,6 +1,0 @@
-name: I2S Mic Demo
-description: A test app for MT8370 I2S input with Adafruit SPH0645LM4H
-license: Apache-2.0
-build:
-  settings:
-    board_root: .
