@@ -163,12 +163,4 @@
         clock-frequency = <26000000>;
 		status = "disabled";
 	};
-
-	i2s: i2s@11220000 {
-		compatible = "mediatek,mtk-i2s";
-		reg = <0x11220000 0x1000>;
-		interrupt-parent = <&gic>;
-		interrupts = <GIC_SPI 97 IRQ_TYPE_LEVEL_LOW IRQ_DEFAULT_PRIORITY>;
-		status = "disabled";
-	};
 };

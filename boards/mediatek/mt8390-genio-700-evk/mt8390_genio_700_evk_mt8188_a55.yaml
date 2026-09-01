@@ -15,7 +15,6 @@ ram: 1024
 supported:
   - pinctrl
   - uart
-  - i2s
 testing:
   ignore_tags:
     - bluetooth
