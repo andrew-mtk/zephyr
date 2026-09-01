@@ -3,8 +3,8 @@
  * Copyright (C) 2025 MediaTek Inc.
  * Author: Hui Liu <hui.liu@mediatek.com>
  */
-#ifndef ZEPHYR_DT_BINDINGS_PINCTRL_MT8370_PINCTRL_H
-#define ZEPHYR_DT_BINDINGS_PINCTRL_MT8370_PINCTRL_H
+#ifndef ZEPHYR_DT_BINDINGS_PINCTRL_MT8188_PINCTRL_H
+#define ZEPHYR_DT_BINDINGS_PINCTRL_MT8188_PINCTRL_H
 
 
 #include <zephyr/dt-bindings/pinctrl/mtk-common-pinctrl.h>
@@ -1288,4 +1288,4 @@ extern "C" {
 }
 #endif
 
-#endif /* ZEPHYR_DT_BINDINGS_PINCTRL_MT8370_PINCTRL_H */
+#endif /* ZEPHYR_DT_BINDINGS_PINCTRL_MT8188_PINCTRL_H */

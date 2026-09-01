@@ -1,8 +1,0 @@
-family:
-- name: mtk-genio
-  series:
-  - name: mt8370
-    socs:
-    - name: mt8370
-      cpuclusters:
-      - name: a55

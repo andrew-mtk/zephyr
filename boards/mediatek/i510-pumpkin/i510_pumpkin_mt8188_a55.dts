@@ -8,12 +8,12 @@
 
 #include <mem.h>
 #include <zephyr/dt-bindings/gpio/gpio.h>
-#include <mediatek/mt8370.dtsi>
-#include "genio_510_evk-pinctrl.dtsi"
+#include <mediatek/mt8188.dtsi>
+#include "i510_pumpkin-pinctrl.dtsi"
 
 / {
-	model = "MediaTek GENION 510 EVK (4*Cortex-A55 and 2*Cortex-A78)";
-	compatible = "mediatek,mt8370-evk";
+	model = "MediaTek i510 Pumpkin (4*Cortex-A55 and 2*Cortex-A78)";
+	compatible = "mediatek,mt8188-pumpkin";
 
 	aliases {
 		trigger = &trigger_gpio;
@@ -29,7 +29,7 @@
 		compatible = "gpio-keys";
 
 		trigger_gpio: trigger-gpio {
-			gpios = <&gpio32_63 6 GPIO_ACTIVE_LOW>;  /* GPIO 38 */
+			gpios = <&gpio0_31 0 GPIO_ACTIVE_LOW>;  /* GPIO 0 */
 			label = "Event Trigger";
 		};
     };
@@ -38,7 +38,7 @@
 		compatible = "gpio-leds";
 
 		response_gpio: response-pgio {
-			gpios = <&gpio32_63 8 GPIO_ACTIVE_LOW>;  /* GPIO 40 */
+			gpios = <&gpio0_31 1 GPIO_ACTIVE_LOW>;  /* GPIO 1 */
 			label = "Event Response";
 		};
 	};
@@ -66,22 +66,13 @@
 	};
 };
 
+&gpio0_31 {
+	status = "okay";
+};
+
 &uart1 {
 	pinctrl-0 = <&uart1_default>;
 	pinctrl-names = "default";
 	current-speed = <115200>;
 	status = "okay";
 };
-
-
-&gpio32_63 {
-	status = "okay";
-};
-
-/*
-&i2s {
-	pinctrl-0 = <&i2s_default>;
-	pinctrl-names = "default";
-	status = "okay";
-};
-*/

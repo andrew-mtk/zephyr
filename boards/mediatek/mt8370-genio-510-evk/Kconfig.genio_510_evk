@@ -1,5 +1,0 @@
-# Copyright 2025 MediaTek
-# SPDX-License-Identifier: Apache-2.0
-
-config BOARD_GENIO_510_EVK
-	select SOC_MT8370_A55 if BOARD_GENIO_510_EVK_MT8370_A55

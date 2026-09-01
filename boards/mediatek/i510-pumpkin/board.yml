@@ -3,5 +3,5 @@ board:
   full_name: i510 Pumpkin (4*Cortex-A55 and 2*Cortex-A78)
   vendor: mediatek
   socs:
-  - name: mt8370
+  - name: mt8188
 

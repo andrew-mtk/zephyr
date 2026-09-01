@@ -1,7 +1,7 @@
 board:
-  name: genio_510_evk
-  full_name: GENION 510 EVK (4*Cortex-A55 and 2*Cortex-A78)
+  name: mt8370_genio_510_evk
+  full_name: MT8370 GENIO 510 EVK (4*Cortex-A55 and 2*Cortex-A78)
   vendor: mediatek
   socs:
-  - name: mt8370
+  - name: mt8188
 

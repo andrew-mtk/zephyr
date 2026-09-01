@@ -19,13 +19,4 @@
 					 <PINMUX_PIN_40__FUNC_B_GPIO40>;
 		};
 	};
-
-	i2s_default: i2s_default {
-		group1 {
-			pinmux = <PINMUX_PIN_107__FUNC_B0_I2SIN_MCK>,
-					 <PINMUX_PIN_108__FUNC_B0_I2SIN_BCK>,
-					 <PINMUX_PIN_109__FUNC_B0_I2SIN_WS>,
-					 <PINMUX_PIN_110__FUNC_I0_I2SIN_D0>;
-		};
-	};
 };
