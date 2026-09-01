@@ -36,12 +36,19 @@ config SOC_SERIES_MT8196
 	help
 	  Mediatek MT8196 Audio DSPs
 
+config SOC_SERIES_MT8365
+	bool
+	select SOC_FAMILY_MTK
+	help
+	  Mediatek MT8365
+
 # Series strings stay here rather than in the per-SoC files: a series can span
 # several SoCs, as mt818x does for the MT8186 and MT8188.
 config SOC_SERIES
 	default "mt8195" if SOC_SERIES_MT8195
 	default "mt818x" if SOC_SERIES_MT818X
 	default "mt8196" if SOC_SERIES_MT8196
+	default "mt8365" if SOC_SERIES_MT8365
 
 # Subdirectory of <soc>/ holding this cluster's sources and linker script. The
 # cpucluster name from soc.yml is not exposed to Kconfig or CMake, so it has to
