@@ -1,0 +1,9 @@
+# Copyright 2025 MediaTek
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_MT8365_A53
+
+config NUM_IRQS
+	default 240
+
+endif

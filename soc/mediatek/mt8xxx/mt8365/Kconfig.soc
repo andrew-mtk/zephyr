@@ -1,0 +1,19 @@
+# Copyright 2025 MediaTek
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_MT8365
+	bool
+	select SOC_SERIES_MT8365
+
+config SOC_MT8365_A53
+	bool
+	select SOC_MT8365
+	select SOC_MTK_ARM_CLUSTER
+	help
+	  MediaTek MT8365 Cortex-A53 cluster
+
+config SOC
+	default "mt8365" if SOC_MT8365
+
+config SOC_MTK_CLUSTER_SUBDIR
+	default "a53" if SOC_MT8365_A53
