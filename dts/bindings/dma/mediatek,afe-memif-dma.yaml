@@ -1,0 +1,27 @@
+# Copyright 2026 MediaTek
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  MediaTek AFE MEMIF DMA controller.
+
+  The Audio Front End (AFE) moves samples between DSP memory and the
+  audio interfaces using a set of MEMIF ("memory interface") engines.
+  Each DMA channel of this controller corresponds one-to-one to a
+  hardware MEMIF, in the same order as the "mediatek,afe" nodes are
+  declared, so dma-channels must match the number of those nodes.
+
+  The per-MEMIF register layout is not described here; it is carried by
+  the individual "mediatek,afe" nodes.  The reg property below is the
+  base of the AFE register block, used to resolve the offsets those
+  nodes are converted into.
+
+compatible: "mediatek,afe-memif-dma"
+
+include: [base.yaml, dma-controller.yaml]
+
+properties:
+  reg:
+    required: true
+
+  dma-channels:
+    required: true

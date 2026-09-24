@@ -1,0 +1,18 @@
+# Copyright 2026 MediaTek
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  MediaTek SOF host DMA.
+
+  Not a hardware DMA controller.  The MediaTek ADSP can access host
+  memory directly, so this "controller" is implemented in software as
+  memcpy plus cache maintenance.  It exists so that the SOF host
+  component can use the regular Zephyr DMA API.
+
+compatible: "mediatek,sof-host-dma"
+
+include: [base.yaml, dma-controller.yaml]
+
+properties:
+  dma-channels:
+    required: true
