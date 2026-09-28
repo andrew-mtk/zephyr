@@ -74,6 +74,9 @@
 			interrupt-parent = <&intc2>;
 			interrupts = <2 0 0>;
 		};
+
+/* Generated code for AFE devices */
+#include "afe-mt8186.dtsi"
 	}; /* soc */
 
 	chosen {};
