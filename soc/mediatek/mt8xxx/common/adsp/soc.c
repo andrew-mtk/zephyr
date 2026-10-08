@@ -31,13 +31,11 @@ extern char _mtk_adsp_dram_end[];
 
 
 #ifdef CONFIG_SOC_MT8196
-#define INIT_STACK "0x90400000"
-#define LOG_BASE   0x90580000
-#define LOG_LEN    0x80000
+#define LOG_BASE       0x90580000
+#define LOG_LEN        0x80000
 #else
-#define INIT_STACK "0x60e00000"
-#define LOG_BASE   0x60700000
-#define LOG_LEN    0x100000
+#define LOG_BASE       0x60700000
+#define LOG_LEN        0x100000
 #endif
 
 /* The MT8196 interrupt controller is very simple at runtime, with
@@ -154,6 +152,14 @@ void mt8196_intc_init(void)
  * function (and duplicates a few versions elsewhere in the tree:
  * really this should move to the arch layer).  The initial stack
  * really should be the end of _interrupt_stacks[0]
+ *
+ * For now it grows down from the top of dram0, which linker.ld exports
+ * as _mtk_adsp_boot_stack_top.  The stack is in use while PS.EXCM is
+ * set, where an access fault becomes a double exception that leaves no
+ * trace, so it must lie in memory the MPU maps.  Nothing else is placed
+ * there: the image and the IPC windows sit far below it and the heap is
+ * in SRAM.  c_boot() clears that range, but before anything has been
+ * written to the stack.
  */
 __asm__(".align 4\n\t"
 	".global mtk_adsp_boot_entry\n\t"
@@ -165,7 +171,7 @@ __asm__(".align 4\n\t"
 	"  movi  a0, 1\n\t"
 	"  wsr   a0, WINDOWSTART\n\t"
 	"  rsync\n\t"
-	"  movi  a1, " INIT_STACK "\n\t"
+	"  movi  a1, _mtk_adsp_boot_stack_top\n\t"
 	"  call4 c_boot\n\t");
 
 /* Unfortunately the SOF kernel loader doesn't understand the boot

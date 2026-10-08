@@ -23,6 +23,9 @@ MEMORY {
 
 ENTRY(mtk_adsp_boot_entry)
 
+/* c_boot() runs on a stack growing down from the top of dram0; see soc.c */
+_mtk_adsp_boot_stack_top = DRAM_START + DRAM_SIZE;
+
 SECTIONS {
 
   /* kluged-in entry point for Linux loader */
