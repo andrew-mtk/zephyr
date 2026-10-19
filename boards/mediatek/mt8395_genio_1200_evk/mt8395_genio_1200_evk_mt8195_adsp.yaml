@@ -1,0 +1,12 @@
+identifier: mt8395_genio_1200_evk/mt8195/adsp
+name: Mediatek Genio 1200 EVK with MT8195 Audio DSP
+type: mcu
+arch: xtensa
+toolchain:
+  - zephyr
+testing:
+  only_tags:
+    - kernel
+    - sof
+    - integration
+vendor: mediatek

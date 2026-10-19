@@ -1,0 +1,5 @@
+# Copyright (c) 2026 MediaTek Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_MT8395_GENIO_1200_EVK
+	select SOC_MT8195_ADSP if BOARD_MT8395_GENIO_1200_EVK_MT8195_ADSP

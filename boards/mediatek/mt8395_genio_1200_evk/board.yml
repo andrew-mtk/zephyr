@@ -1,0 +1,6 @@
+boards:
+  - name: mt8395_genio_1200_evk
+    full_name: Genio 1200 EVK
+    vendor: mediatek
+    socs:
+      - name: mt8195
