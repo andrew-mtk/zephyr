@@ -1,0 +1,12 @@
+identifier: mt8370_genio_510_evk/mt8188/adsp
+name: MediaTek Genio 510 EVK Audio DSP
+type: mcu
+arch: xtensa
+toolchain:
+  - zephyr
+testing:
+  only_tags:
+    - kernel
+    - sof
+    - integration
+vendor: mediatek

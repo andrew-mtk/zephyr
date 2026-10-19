@@ -18,8 +18,12 @@ DSP. MediaTek describes it as pin-to-pin and software compatible with the
 higher-performance Genio 700, which is why both boards share this port's SoC,
 drivers and devicetree.
 
-Zephyr runs on **one Cortex-A55 core** of this board, as a Jailhouse inmate
-alongside Linux. See `Programming and Debugging`_.
+Zephyr supports two board targets:
+
+- ``mt8370_genio_510_evk/mt8188/a55`` runs on one Cortex-A55 core, as a Jailhouse
+  inmate alongside Linux. See `Programming and Debugging`_.
+- ``mt8370_genio_510_evk/mt8188/adsp`` runs on the HiFi 5 audio DSP, as Sound Open
+  Firmware loaded by Linux. See `Audio DSP`_.
 
 Hardware
 ********
@@ -71,6 +75,8 @@ on **CN3201**.
 
 Programming and Debugging
 *************************
+
+This section covers the ``a55`` target.
 
 Zephyr runs on this board using the `Jailhouse`_ hypervisor, where this
 hypervisor takes away one Cortex-A55 core from Linux and hands it to Zephyr.
@@ -163,6 +169,36 @@ Debugging
 No Zephyr flash or debug runner is provided: the image is loaded by the
 hypervisor from Linux rather than by a host-side tool, so ``west flash`` and
 ``west debug`` do not apply to this board.
+
+Audio DSP
+*********
+
+The ``mt8370_genio_510_evk/mt8188/adsp`` target is meant for the `Sound Open Firmware`_
+(SOF) application. Linux boots the DSP through its SOF driver, which loads the
+signed image from ``/lib/firmware/mediatek/sof/sof-mt8188.ri`` and exchanges
+IPC with it over the ADSP mailboxes.
+
+.. _Sound Open Firmware:
+   https://thesofproject.github.io/latest/
+
+The DSP memory must match the regions the Linux board devicetree reserves for
+it:
+
+=========  ==========  ======  ===============================================
+Node       Address     Size    Use
+=========  ==========  ======  ===============================================
+``sram0``  0x4e100000  512 KB  DSP SRAM
+``dram0``  0x60000000  15 MB   Firmware, data and heap (``adsp_mem_reserved``)
+``dram1``  0x60f00000  1 MB    Host DMA buffers (``adsp_dma_mem_reserved``)
+=========  ==========  ======  ===============================================
+
+The generic ``mt8188/mt8188/adsp`` target places ``dram1`` at 0x61000000, which
+this board assigns to the host AFE, so firmware built for that target does not
+work here.
+
+Build and sign the SOF application for this target as described in the SOF
+build guide, install ``zephyr.ri`` as
+``/lib/firmware/mediatek/sof/sof-mt8188.ri`` on the target and reboot it.
 
 References
 **********
