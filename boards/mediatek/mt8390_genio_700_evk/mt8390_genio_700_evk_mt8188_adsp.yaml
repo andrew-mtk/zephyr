@@ -1,0 +1,12 @@
+identifier: mt8390_genio_700_evk/mt8188/adsp
+name: MediaTek Genio 700 EVK Audio DSP
+type: mcu
+arch: xtensa
+toolchain:
+  - zephyr
+testing:
+  only_tags:
+    - kernel
+    - sof
+    - integration
+vendor: mediatek
