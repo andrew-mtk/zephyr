@@ -127,3 +127,9 @@ set(kit_psc3m6_evk_DEPRECATED
 set(kit_psc3m6_evk/psc3m6ges3ahq1_DEPRECATED
     kit_psc3m6_eval/psc3m6ges3ahq1
 )
+set(mt8365_DEPRECATED
+    mt8365_genio_350_evk/mt8365/adsp
+)
+set(mt8365/mt8365/adsp_DEPRECATED
+    mt8365_genio_350_evk/mt8365/adsp
+)

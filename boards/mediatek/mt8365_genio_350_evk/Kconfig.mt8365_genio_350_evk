@@ -1,0 +1,5 @@
+# Copyright 2025 Mediatek
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_MT8365_GENIO_350_EVK
+	select SOC_MT8365_ADSP if BOARD_MT8365_GENIO_350_EVK_MT8365_ADSP

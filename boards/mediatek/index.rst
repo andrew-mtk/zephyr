@@ -108,9 +108,9 @@ Toolchains
 
 The MT8195, MT818X and MT8365 toolchains are already part of the Zephyr
 SDK, so builds for the ``mt8195/mt8195/adsp``, ``mt8186/mt8186/adsp``,
-``mt8188/mt8188/adsp`` and ``mt8365/mt8365/adsp`` board targets should
-work out of the box simply following the generic Zephyr build instructions
-in the Getting Started guide.
+``mt8188/mt8188/adsp`` and ``mt8365_genio_350_evk/mt8365/adsp`` board
+targets should work out of the box simply following the generic Zephyr
+build instructions in the Getting Started guide.
 
 Closed-source Tools
 -------------------

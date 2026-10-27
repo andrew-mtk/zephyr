@@ -254,6 +254,9 @@ Boards
   ``-b kit_psc3m6_evk/psc3m6ges3ahq1`` are deprecated and now map to
   ``kit_psc3m6_eval`` and ``kit_psc3m6_eval/psc3m6ges3ahq1``.
 
+* MediaTek ``mt8365`` board is renamed to ``mt8365_genio_350_evk``, as it is the
+  Genio 350 EVK.
+
 * The Nordic sysbuild Kconfig option ``SB_CONFIG_NRF_HALTIUM_GENERATE_UICR``
   has been renamed to :kconfig:option:`SB_CONFIG_NRF_GENERATE_UICR`.
   Update sysbuild configurations to use the new name.
