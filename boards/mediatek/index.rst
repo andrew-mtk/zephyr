@@ -16,12 +16,12 @@ Audio DSPs
 
 Zephyr can be built and run on the Audio DSPs included in various
 members of the Mediatek MT8xxx series of ARM SOCs used in Chromebooks
-from various manufacturers and Mediatek Genio evaluations kits.
+from various manufacturers.
 
-Four of these DSPs are in the market already, implemented via the
-MT8195 ("Kompanio 1380", MT8186 ("Kompanio 520"), MT8188 ("Kompanio 838")
-and MT8365 ("Genio 350 EVK") SOCs. Development has been done on and
-validation performed on at least these devices, though more exist:
+Three of these DSPs are in the market already, implemented via the
+MT8195 ("Kompanio 1380"), MT8186 ("Kompanio 520") and MT8188
+("Kompanio 838") SOCs. Development has been done on and validation
+performed on at least these devices, though more exist:
 
   ======  =============  ===================================  =================
   SOC     Product Name   Example Device                       ChromeOS Codename
@@ -29,7 +29,6 @@ validation performed on at least these devices, though more exist:
   MT8195  Kompanio 1380  HP Chromebook x360 13b               dojo
   MT8186  Kompanio 520   Lenovo 300e Yoga Chromebook Gen 4    steelix
   MT8188  Kompanio 838   Lenovo Chromebook Duet 11            ciri
-  MT8365  Genio 350      Genio 350 EVK
   ======  =============  ===================================  =================
 
 Hardware
@@ -106,11 +105,11 @@ but this is still unintegrated.
 Toolchains
 ==========
 
-The MT8195, MT818X and MT8365 toolchains are already part of the Zephyr
-SDK, so builds for the ``mt8195/mt8195/adsp``, ``mt8186/mt8186/adsp``,
-``mt8188/mt8188/adsp`` and ``mt8365_genio_350_evk/mt8365/adsp`` board
-targets should work out of the box simply following the generic Zephyr
-build instructions in the Getting Started guide.
+The MT8195 and MT818X toolchains are already part of the Zephyr SDK, so
+builds for the ``mt8195/mt8195/adsp``, ``mt8186/mt8186/adsp`` and
+``mt8188/mt8188/adsp`` board targets should work out of the box simply
+following the generic Zephyr build instructions in the Getting Started
+guide.
 
 Closed-source Tools
 -------------------
